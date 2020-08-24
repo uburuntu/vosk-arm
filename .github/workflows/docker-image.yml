@@ -29,12 +29,6 @@ jobs:
         run: |
           echo "${DOCKER_PASSWORD}" | docker login ${DOCKER_REGISTRY} --username "${DOCKER_USERNAME}" --password-stdin
 
-      - name: Docker Configuration
-        run: |
-          sudo echo "{" > /etc/docker/daemon.json
-          sudo echo "    \"MTU\":1300" > /etc/docker/daemon.json
-          sudo echo "}" > /etc/docker/daemon.json
-
       - name: Run Buildx (push image)
         run: |
           docker buildx build \
