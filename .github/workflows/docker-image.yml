@@ -8,26 +8,39 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      DOCKER_REGISTRY: docker.io
+      DOCKER_IMAGE: uburuntu/kaldi-vosk-server
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      DOCKER_TARGET_PLATFORM: linux/arm/v8
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Build and push Docker image for ARMv7
-      uses: docker/build-push-action@v1
+    - name: Set up Docker Buildx
+      uses: crazy-max/ghaction-docker-buildx@v1
       with:
-        path: docker
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        repository: uburuntu/kaldi-vosk-server
-        tags: armv7
-        build_args: ARCH=ARMV7
+        version: latest
 
-    - name: Build and push Docker image for ARMv8
-      uses: docker/build-push-action@v1
-      with:
-        path: docker
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        repository: uburuntu/kaldi-vosk-server
-        tags: armv8
-        build_args: ARCH=ARMV8
+    - name: Prepare
+        if: success()
+        id: prepare
+        run: |
+          echo ::set-output name=docker_platform::${DOCKER_TARGET_PLATFORM}
+          echo ::set-output name=docker_image::${DOCKER_REGISTRY}/${DOCKER_IMAGE}
+          echo ::set-output name=version::${GITHUB_RUN_NUMBER}
+
+    - name: Docker Login
+        run: |
+          echo "${DOCKER_PASSWORD}" | docker login ${DOCKER_REGISTRY} --username "${DOCKER_USERNAME}" --password-stdin
+
+    - name: Run Buildx (push image)
+        if: success()
+        run: |
+          docker buildx build \
+          --platform ${{ steps.prepare.outputs.docker_platform }} \
+          --tag ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }} \
+          --file ./docker/Dockerfile \
+          --output type=image,push=true .
