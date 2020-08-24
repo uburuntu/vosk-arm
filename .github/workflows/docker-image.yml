@@ -31,9 +31,9 @@ jobs:
 
       - name: Docker Configuration
         run: |
-          echo "{" > /etc/docker/daemon.json
-          echo "    \"MTU\":1300" > /etc/docker/daemon.json
-          echo "}" > /etc/docker/daemon.json
+          sudo echo "{" > /etc/docker/daemon.json
+          sudo echo "    \"MTU\":1300" > /etc/docker/daemon.json
+          sudo echo "}" > /etc/docker/daemon.json
 
       - name: Run Buildx (push image)
         run: |
