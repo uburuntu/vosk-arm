@@ -16,31 +16,29 @@ jobs:
       DOCKER_TARGET_PLATFORM: linux/arm/v8
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: crazy-max/ghaction-docker-buildx@v1
-      with:
-        version: latest
+      - name: Set up Docker Buildx
+        uses: crazy-max/ghaction-docker-buildx@v1
+        with:
+          version: latest
 
-    - name: Prepare
-        if: success()
-        id: prepare
-        run: |
-          echo ::set-output name=docker_platform::${DOCKER_TARGET_PLATFORM}
-          echo ::set-output name=docker_image::${DOCKER_REGISTRY}/${DOCKER_IMAGE}
-          echo ::set-output name=version::${GITHUB_RUN_NUMBER}
+      - name: Prepare
+          id: prepare
+          run: |
+            echo ::set-output name=docker_platform::${DOCKER_TARGET_PLATFORM}
+            echo ::set-output name=docker_image::${DOCKER_REGISTRY}/${DOCKER_IMAGE}
+            echo ::set-output name=version::${GITHUB_RUN_NUMBER}
 
-    - name: Docker Login
-        run: |
-          echo "${DOCKER_PASSWORD}" | docker login ${DOCKER_REGISTRY} --username "${DOCKER_USERNAME}" --password-stdin
+      - name: Docker Login
+          run: |
+            echo "${DOCKER_PASSWORD}" | docker login ${DOCKER_REGISTRY} --username "${DOCKER_USERNAME}" --password-stdin
 
-    - name: Run Buildx (push image)
-        if: success()
-        run: |
-          docker buildx build \
-          --platform ${{ steps.prepare.outputs.docker_platform }} \
-          --tag ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }} \
-          --file ./docker/Dockerfile \
-          --output type=image,push=true .
+      - name: Run Buildx (push image)
+          run: |
+            docker buildx build \
+            --platform ${{ steps.prepare.outputs.docker_platform }} \
+            --tag ${{ steps.prepare.outputs.docker_image }}:armv8 \
+            --file ./docker/Dockerfile \
+            --output type=image,push=true .
