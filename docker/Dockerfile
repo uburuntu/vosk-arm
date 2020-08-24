@@ -2,7 +2,7 @@ FROM python:3.7-buster
 
 # Pass a required ARM architecture while building an image, e.g.
 # docker build --build-arg ARCH=ARMV8 -t alphacep/kaldi-vosk-server:armv8 .
-ARG ARCH=ARMV8
+ARG ARCH=ARM64
 ENV RUVERSION 0.10
 
 RUN apt-get update && \
