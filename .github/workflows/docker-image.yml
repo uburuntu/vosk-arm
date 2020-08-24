@@ -20,25 +20,19 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up Docker Buildx
-        uses: crazy-max/ghaction-docker-buildx@v1
+        uses: crazy-max/ghaction-docker-buildx@v3
         with:
-          version: latest
-
-      - name: Prepare
-          id: prepare
-          run: |
-            echo ::set-output name=docker_platform::${DOCKER_TARGET_PLATFORM}
-            echo ::set-output name=docker_image::${DOCKER_REGISTRY}/${DOCKER_IMAGE}
-            echo ::set-output name=version::${GITHUB_RUN_NUMBER}
+          buildx-version: latest
+          qemu-version: latest
 
       - name: Docker Login
-          run: |
-            echo "${DOCKER_PASSWORD}" | docker login ${DOCKER_REGISTRY} --username "${DOCKER_USERNAME}" --password-stdin
+        run: |
+          echo "${DOCKER_PASSWORD}" | docker login ${DOCKER_REGISTRY} --username "${DOCKER_USERNAME}" --password-stdin
 
       - name: Run Buildx (push image)
-          run: |
-            docker buildx build \
-            --platform ${{ steps.prepare.outputs.docker_platform }} \
-            --tag ${{ steps.prepare.outputs.docker_image }}:armv8 \
-            --file ./docker/Dockerfile \
-            --output type=image,push=true .
+        run: |
+          docker buildx build \
+          --platform ${DOCKER_TARGET_PLATFORM} \
+          --tag ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:armv8 \
+          --file ./docker/Dockerfile \
+          --output type=image,push=true .
